@@ -16,23 +16,32 @@ import re
 
 
 
-def getIonList(pathToSavFiles):
-    iz = np.arange(2, 26+1, 1) #  because arange doesn't include end number
+def getEmissList(pathToSavFiles):
     fileList = glob(pathToSavFiles+'/*.sav')
-    savFiles = {}
+    savFiles = {} 
+ 
     # loop through .save files and categorize into a big dictionary
-    # format: savFiles[iz][ion][n] 
+    # format: savFiles[iz][ion][n]
     for file_ in fileList:
         splitLine = re.split('_|\.', file_)
         iz = int(splitLine[1][2:])
         ion = int(splitLine[2][3:])
         n = int(splitLine[3][1:])
-        savFiles.update({iz:{ion:{n:file_}}})
 
-    return savFiles 
+        if not (iz in savFiles.keys()):
+            savFiles.update({iz:{ion:{n:file_}}})
+        else:
+            if not (ion in savFiles[iz].keys()):
+                savFiles[iz].update({ion:{n:file_}})
+            else:
+                if not (n in savFiles[iz][ion].keys()):
+                    savFiles[iz][ion].update({n:file_})
 
 
-def getIonData(pathToSavFile):
+    return savFiles
+
+
+def getEmissData(pathToSavFile):
     data = readsav(pathToSavFile)
     return data
 
@@ -56,17 +65,17 @@ def getSimulationData(dotDatFile):
 
     # add initial fractions to lists
     times.append(0.0)
-    fractions.append(fraction_initial)
+    NEI_fractions.append(fraction_initial_ei)
 
     # loop through the data and append to our lists
-    for i in rnage(n_timeSteps[0]): # unfortunately n_timeSteps in an array with a single element
+    for i in range(n_timeSteps[0]): # unfortunately n_timeSteps in an array with a single element
         time = f.read_reals(dtype=np.float64)
         current_nei_fractions = f.read_reals(dtype=np.float64).reshape(30,30)
         times.append(time[0])
         NEI_fractions.append(current_nei_fractions)
 
     # add the final ei fractions to the list
-    NEI_fractions.append(current_fractions)
+    NEI_fractions.append(fraction_ei_final)
 
     #*** note that the NEI_fractions list now has one extra element as it isn't reasonable to attach a time to the
     #*** final equilibrium ionization fractions
