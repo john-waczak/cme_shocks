@@ -131,7 +131,9 @@ def plotRadialStack(times, distances, intensities, fig, ax):
 
 
 
-
+def getNearestValue(array, value):
+    """ Return the index of the element in the array closest to value"""
+    return np.abs(array-value).argmin() 
 
 
 

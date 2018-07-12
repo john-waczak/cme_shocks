@@ -144,6 +144,9 @@ def run(te_sta = 1e6, te_end = 2.8*1e6, n = 1e7, num = 2, indices = '2, 26', nti
 
 
 
+
+
+
 if __name__ == '__main__':
     pathToSavFiles = "/data/khnum/REU2018/jwaczak/data/chiantiEmissData"
     savFiles = getIonList(pathToSavFiles) 
