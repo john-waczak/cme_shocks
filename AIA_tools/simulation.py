@@ -151,25 +151,44 @@ def getCoronalAbundances(pathToAbund = '/data/khnum/REU2018/jwaczak/data/CHIANTI
             splitline = line.split(' ')
             lineData = []
             for thing in splitline:
-                if not (thin is ''):
+                if not (thing is ''):
                     lineData.append(thing)
-            if lineData[0] is '-1\n':
+            if len(lineData) == 1:
                 break
             else:
-                log10_abund.update({lineData[0]:float(lineData[1])})
-
+                log10_abund.update({lineData[0]: float(lineData[1])})
     abund = {}
     for key in log10_abund.keys():
-       abund.update({key: np.power(10.0, log10_abund[key]-12.0)})
+        abund.update({key: np.power(10.0, log10_abund[key]-12.0)})
 
-def getSyntheticObservation(timeIndex, te_sta, te_end, n, simData, eff_area, emissFiles, abundances):
-    print(timeIndex) 
+    return abund 
 
+
+def getSyntheticObservation(timeIndex, te_sta, te_end, n, simDataFile): 
+    print(timeIndex)
+
+
+    # get the simulation data
+    simData = getSimulationData(simDataFile) 
+
+    # get emissivity files
+    pathToChiantiEmiss = '/data/khnum/REU2018/jwaczak/data/chiantiEmissData'
+    emissFiles = getEmissList(pathToChiantiEmiss) 
+
+    # get wavelength response from AIA
+    eff_area = readsav('/data/khnum/REU2018/jwaczak/data/June_2010_CME_burst/aia_response/eff_area.sav')
+
+    # get the coronal abundance data 
+    abundances = getCoronalAbundances()
+
+    # create observation data structure for output
     observation = {'time':simData['times'][timeIndex], '171':0.0, '193':0.0, '211':0.0, '304':0.0, '335':0.0}
 
     aia_channels = ['A94', 'A131', 'A171', 'A193', 'A211', 'A304', 'A335']
     elem_list = [2, 6, 7, 8, 10, 12, 13, 14, 16, 18, 20, 26, 28]
 
+
+    # loop through the elements in the list
     for elem in elem_list:
         print('\t{}'.format(elem))
 
@@ -196,10 +215,11 @@ def getSyntheticObservation(timeIndex, te_sta, te_end, n, simData, eff_area, emi
             emiss0 = emiss0*simData['fractions'][timeIndex][elem-1, ion]*abundances[str(elem)]
 
             # loop through channels to get synthetic counts
-            for channel in aia_channels:
-                channel_ = channel.replace('A', '')
-                if channel_ in observation.keys():
-                    ea_data = eff_area['effarea'][channel][0]
+            #for channel in aia_channels:
+
+            for channel in observation.keys():
+                if not channel == 'time': 
+                    ea_data = eff_area['effarea']['A'+channel][0]
                     ea_wavelengths = ea_data['wave'][0]
                     ea_values = ea_data['ea'][0]
 
@@ -213,9 +233,8 @@ def getSyntheticObservation(timeIndex, te_sta, te_end, n, simData, eff_area, emi
                     # get total counts by summing up whole band
                     em_tot = np.sum(em_new)
 
-
-            # add this to appropriate spot in observation dictionary
-            observation[channel_] = observation[channel_]+em_tot 
+                    # add this to appropriate spot in observation dictionary
+                    observation[channel] += em_tot 
 
     return [observation['time'], observation['171'], observation['193'], observation['211'], observation['304'], observation['335'] ]
 
