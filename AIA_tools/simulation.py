@@ -162,51 +162,62 @@ def getCoronalAbundances(pathToAbund = '/data/khnum/REU2018/jwaczak/data/CHIANTI
     for key in log10_abund.keys():
        abund.update({key: np.power(10.0, log10_abund[key]-12.0)})
 
-def getSyntheticObservation(elem, ion, timeIndex, te_sta, te_end, n, simData, eff_area, emissFiles, abundances, observation):
+def getSyntheticObservation(timeIndex, te_sta, te_end, n, simData, eff_area, emissFiles, abundances):
+    print(timeIndex) 
+
+    observation = {'time':simData['times'][timeIndex], '171':0.0, '193':0.0, '211':0.0, '304':0.0, '335':0.0}
+
     aia_channels = ['A94', 'A131', 'A171', 'A193', 'A211', 'A304', 'A335']
+    elem_list = [2, 6, 7, 8, 10, 12, 13, 14, 16, 18, 20, 26, 28]
 
-    # get emissivity data
-    emissData = getEmissData(emissFiles[elem][ion][n])
-    emiss_wavelengths = emissData['lambda_1d']
-    emiss_log_temps = emissData['logte_1d'] 
+    for elem in elem_list:
+        print('\t{}'.format(elem))
 
-    # get nearest temperature index
-    temp_index = analysis.getNearestValue(np.power(10.0, emiss_log_temps), te_end)
+        ions = [ion for ion in range(30) if ion in emissFiles[elem].keys()]
+        for ion in ions: 
 
-    # truncate wavlengths to allow for interpolation (scipy doesn't automatically extrapolate)
-    wav_indices = np.asarray(range(len(emiss_wavelengths)))
-    wav_indices = wav_indices[(emiss_wavelengths[wav_indices]<=900) & (emiss_wavelengths[wav_indices]>=25)]
+            # get emissivity data
+            emissData = getEmissData(emissFiles[elem][ion][n])
+            emiss_wavelengths = emissData['lambda_1d']
+            emiss_log_temps = emissData['logte_1d'] 
 
-    # get correct emissivity data
-    emiss_wavelengths = emiss_wavelengths[wav_indices]
-    emiss0 = emissData['em_2d'][wav_indices, temp_index]
+            # get nearest temperature index
+            temp_index = analysis.getNearestValue(np.power(10.0, emiss_log_temps), te_end)
 
-    # calculate new emissivity using ion fraction and abundances
-    emiss0 = emiss0*simData['fractions'][timeIndex][elem-1, ion]*abundances[str(elem)]
+            # truncate wavlengths to allow for interpolation (scipy doesn't automatically extrapolate)
+            wav_indices = np.asarray(range(len(emiss_wavelengths)))
+            wav_indices = wav_indices[(emiss_wavelengths[wav_indices]<=900) & (emiss_wavelengths[wav_indices]>=25)]
 
-    # loop through channels to get synthetic counts
-    for channel in aia_channels:
-        channel_ = channel.replace('A', '')
-        if channel_ in observation.keys():
-            ea_data = eff_area['effarea'][channel][0]
-            ea_wavelengths = ea_data['wave'][0]
-            ea_values = ea_data['ea'][0]
+            # get correct emissivity data
+            emiss_wavelengths = emiss_wavelengths[wav_indices]
+            emiss0 = emissData['em_2d'][wav_indices, temp_index]
 
-            # interpolate to match emissivity wavelengths
-            interp_obj = interp1d(ea_wavelengths, ea_values, kind='quadratic')
-            interp_ea = interp_obj(emiss_wavelengths)
+            # calculate new emissivity using ion fraction and abundances
+            emiss0 = emiss0*simData['fractions'][timeIndex][elem-1, ion]*abundances[str(elem)]
 
-            # get real emissivity using aia response fucntion
-            em_new = interp_ea * emiss0
+            # loop through channels to get synthetic counts
+            for channel in aia_channels:
+                channel_ = channel.replace('A', '')
+                if channel_ in observation.keys():
+                    ea_data = eff_area['effarea'][channel][0]
+                    ea_wavelengths = ea_data['wave'][0]
+                    ea_values = ea_data['ea'][0]
 
-            # get total counts by summing up whole band
-            em_tot = np.sum(em_new)
+                    # interpolate to match emissivity wavelengths
+                    interp_obj = interp1d(ea_wavelengths, ea_values, kind='quadratic')
+                    interp_ea = interp_obj(emiss_wavelengths)
+
+                    # get real emissivity using aia response fucntion
+                    em_new = interp_ea * emiss0
+
+                    # get total counts by summing up whole band
+                    em_tot = np.sum(em_new)
 
 
             # add this to appropriate spot in observation dictionary
-            observation[channel_][timeIndex] = observation[channel_][timeIndex]+em_tot 
+            observation[channel_] = observation[channel_]+em_tot 
 
-
+    return [observation['time'], observation['171'], observation['193'], observation['211'], observation['304'], observation['335'] ]
 
 
 
