@@ -65,25 +65,34 @@ intensities['211'] = interp_211(time_vals)
 intensities['304'] = interp_304(time_vals) 
 intensities['335'] = interp_335(time_vals) 
 
+np.asarray([time_vals, intensities['171'],
+            intensities['193'], intensities['211'],
+            intensities['304'], intensities['335']])
+
+np.savetxt('/data/khnum/REU2018/jwaczak/data/obs_data.txt', delimiter=',')
 Dt = np.mean(np.asarray(time_vals)[1:]-np.asarray(time_vals)[0:-1])
 
 # shift the times so that they start at t=0 [s]
 time_vals = np.arange(0, len(time_vals)*Dt, Dt) 
 
 # trying out temperature from Ma et al. paper 
-te_sta = 1e7
-te_end = 1e8
-n = 8
-fname= 't0--{:.2E}__t1--{:.2E}__n--{:.2E}'.format(te_sta, te_end, n)
-element_list = '2, 6, 7, 8, 10, 12, 13, 14, 16, 18, 20, 26, 28'  # He, C, N, O, Ne, Mg, Al, Si, S, Ar, Ca, Fe, Ni
-simDataFile = aia.simulation.run(te_sta, te_end, 10**n, num=13,
-               indices=element_list, ntime=len(time_vals), dt= Dt, filename=fname)
-
+te_sta = np.linspace(5e6, 1e7, 10)
+te_end = np.linspace(5e6, 1e9, 20)
+N = [8]
 
 pathToChiantiEmiss = '/data/khnum/REU2018/jwaczak/data/chiantiEmissData'
-
 nproc = 6
 
-obs = aia.simulation.runParallel(simDataFile, nproc, time_vals, te_sta, te_end, n)
+for t0 in te_sta:
+    for t1 in te_end:
+        for n in N:
+            print('t0: {}  t1: {}  n: {}'.format(t0, t1, n))
+            fname = 't0--{:.2E}__t1--{:.2E}__n--{:.2E}'.format(t0, t1, n)
+            element_list = '2, 6, 7, 8, 10, 12, 13, 14, 16, 18, 20, 26, 28'  # He, C, N, O, Ne, Mg, Al, Si, S, Ar, Ca, Fe, Ni
+            simDataFile = aia.simulation.run(te_sta, te_end, 10**n, num=13,
+                                             indices=element_list, ntime=len(time_vals), dt= Dt, filename=fname)
+
+            obs = aia.simulation.getSyntheticObservation_II(simDataFile, nproc, time_vals, t0, t1, n) 
+
 
 print('All done!')

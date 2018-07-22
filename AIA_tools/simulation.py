@@ -255,9 +255,7 @@ def runParallel(simDataFile, nproc, obs_times, te_sta, te_end, n):
     fname= '/data/khnum/REU2018/jwaczak/data/simOutput/t0--{:.2E}__t1--{:.2E}__n--{:.2E}'.format(te_sta, te_end, 10**n) 
     np.savetxt(fname+'.txt', data, delimiter=',', header='time, 171, 193, 211, 304, 335')
 
-    return data 
-
-
+    return data
 
 
 def getSyntheticObservation_II(te_sta, te_end, n, simDataFile, nproc):
@@ -277,9 +275,7 @@ def getSyntheticObservation_II(te_sta, te_end, n, simDataFile, nproc):
     # get the coronal abundance data 
     abundances = getCoronalAbundances()
 
-    aia_channels = ['A94', 'A131', 'A171', 'A193', 'A211', 'A304', 'A335']
     elem_list = [2, 6, 7, 8, 10, 12, 13, 14, 16, 18, 20, 26, 28]
-
 
     # set up output dictionary
     obs = {'time':simData['times'], '171':np.zeros(len(time_vals)), '193':np.zeros(len(time_vals)), '211':np.zeros(len(time_vals)), '304':np.zeros(len(time_vals)), '335':np.zeros(len(time_vals))}
