@@ -65,11 +65,11 @@ intensities['211'] = interp_211(time_vals)
 intensities['304'] = interp_304(time_vals) 
 intensities['335'] = interp_335(time_vals) 
 
-np.asarray([time_vals, intensities['171'],
+obs_out = np.asarray([time_vals, intensities['171'],
             intensities['193'], intensities['211'],
             intensities['304'], intensities['335']])
 
-np.savetxt('/data/khnum/REU2018/jwaczak/data/obs_data.txt', delimiter=',')
+np.savetxt('/data/khnum/REU2018/jwaczak/data/obs_data.txt', obs_out, delimiter=',')
 Dt = np.mean(np.asarray(time_vals)[1:]-np.asarray(time_vals)[0:-1])
 
 # shift the times so that they start at t=0 [s]
