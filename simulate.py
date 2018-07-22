@@ -92,7 +92,7 @@ for t0 in te_sta:
             simDataFile = aia.simulation.run(te_sta, te_end, 10**n, num=13,
                                              indices=element_list, ntime=len(time_vals), dt= Dt, filename=fname)
 
-            obs = aia.simulation.getSyntheticObservation_II(simDataFile, nproc, time_vals, t0, t1, n) 
+            obs = aia.simulation.getSyntheticObservation_II(t0, t1, n, simDataFile, nproc) 
 
 
 print('All done!')
