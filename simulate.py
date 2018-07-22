@@ -89,7 +89,7 @@ for t0 in te_sta:
             print('t0: {}  t1: {}  n: {}'.format(t0, t1, n))
             fname = 't0--{:.2E}__t1--{:.2E}__n--{:.2E}'.format(t0, t1, n)
             element_list = '2, 6, 7, 8, 10, 12, 13, 14, 16, 18, 20, 26, 28'  # He, C, N, O, Ne, Mg, Al, Si, S, Ar, Ca, Fe, Ni
-            simDataFile = aia.simulation.run(te_sta, te_end, 10**n, num=13,
+            simDataFile = aia.simulation.run(t0, t1, 10**n, num=13,
                                              indices=element_list, ntime=len(time_vals), dt= Dt, filename=fname)
 
             obs = aia.simulation.getSyntheticObservation_II(t0, t1, n, simDataFile, nproc) 
