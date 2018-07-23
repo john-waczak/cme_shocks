@@ -7,7 +7,8 @@ pathToData = '/data/khnum/REU2018/jwaczak/data/simOutput/'
 pathToFigFolder = '/data/khnum/REU2018/jwaczak/data/figs/simulation/'
 
 os.chdir(pathToData) 
-dataFiles = glob('*.txt')
+dataFiles = glob('*.*')
+print(dataFiles)
 
 
 

@@ -321,6 +321,7 @@ def getSyntheticObservation_II(te_sta, te_end, n, simDataFile, nproc):
                    emiss0.update({channel:interp_ea * emiss})
 
 
+
             for t in range(len(time_vals)):
                 for channel in obs.keys():
                     if channel is not 'time':
@@ -328,6 +329,11 @@ def getSyntheticObservation_II(te_sta, te_end, n, simDataFile, nproc):
                         em_tot = np.sum(em)
                         obs[channel][t] += em_tot
     return obs
+
+
+def getTempVals(pathToTemps = '/data/khnum/REU2018/jwaczak/data/tempVals.txt'):
+    temps = np.loadtxt(pathToTemps, delimiter=',')
+    return temps
 
 
 if __name__ == '__main__':

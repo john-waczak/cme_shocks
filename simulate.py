@@ -69,15 +69,14 @@ obs_out = np.asarray([time_vals, intensities['171'],
             intensities['193'], intensities['211'],
             intensities['304'], intensities['335']])
 
-np.savetxt('/data/khnum/REU2018/jwaczak/data/obs_data.txt', obs_out, delimiter=',')
 Dt = np.mean(np.asarray(time_vals)[1:]-np.asarray(time_vals)[0:-1])
 
 # shift the times so that they start at t=0 [s]
 time_vals = np.arange(0, len(time_vals)*Dt, Dt) 
 
 # trying out temperature from Ma et al. paper 
-te_sta = np.linspace(5e6, 1e7, 10)
-te_end = np.linspace(5e6, 1e9, 20)
+te_sta = [1e6] 
+te_end = aia.simulation.getTempVals() 
 N = [8]
 
 pathToChiantiEmiss = '/data/khnum/REU2018/jwaczak/data/chiantiEmissData'
@@ -87,12 +86,16 @@ for t0 in te_sta:
     for t1 in te_end:
         for n in N:
             print('t0: {}  t1: {}  n: {}'.format(t0, t1, n))
-            fname = 't0--{:.2E}__t1--{:.2E}__n--{:.2E}'.format(t0, t1, n)
+            fname = 't0--{:.2E}__t1--{:.2E}__n--{:.2E}'.format(t0, t1, 10**n)
             element_list = '2, 6, 7, 8, 10, 12, 13, 14, 16, 18, 20, 26, 28'  # He, C, N, O, Ne, Mg, Al, Si, S, Ar, Ca, Fe, Ni
             simDataFile = aia.simulation.run(t0, t1, 10**n, num=13,
-                                             indices=element_list, ntime=len(time_vals), dt= Dt, filename=fname)
+                                             indices=element_list, ntime=len(time_vals), dt= Dt, filename=fname+'.dat')
 
             obs = aia.simulation.getSyntheticObservation_II(t0, t1, n, simDataFile, nproc) 
+
+            data = [[obs['time'][i], obs['171'][i], obs['193'][i], obs['211'][i], obs['304'][i], obs['335'][i]] for i in range(len(obs['time']))]
+            data = np.asarray(data)
+            np.savetxt('/data/khnum/REU2018/jwaczak/data/simOutput/'+fname+'.txt', data, delimiter=',') 
 
 
 print('All done!')
