@@ -75,27 +75,33 @@ Dt = np.mean(np.asarray(time_vals)[1:]-np.asarray(time_vals)[0:-1])
 time_vals = np.arange(0, len(time_vals)*Dt, Dt) 
 
 # trying out temperature from Ma et al. paper 
-te_sta = [1e6] 
-te_end = aia.simulation.getTempVals() 
-N = [8]
+te_sta = np.array([1.7*1e6, 1.8*1e6, 1.9*1e6])
+te_end = aia.simulation.getTempVals()
+low_t_index = aia.analysis.getNearestValue(te_end, te_sta.max())
+te_end = te_end[low_t_index:]
+N = [7]
 
 pathToChiantiEmiss = '/data/khnum/REU2018/jwaczak/data/chiantiEmissData'
 nproc = 6
+
+pastRuns = glob('/data/khnum/REU2018/jwaczak/data/oldSimRuns/*.dat')
+Runs = glob('/data/khnum/REU2018/jwaczak/data/simRuns/*.dat')
 
 for t0 in te_sta:
     for t1 in te_end:
         for n in N:
             print('t0: {}  t1: {}  n: {}'.format(t0, t1, n))
             fname = 't0--{:.2E}__t1--{:.2E}__n--{:.2E}'.format(t0, t1, 10**n)
-            element_list = '2, 6, 7, 8, 10, 12, 13, 14, 16, 18, 20, 26, 28'  # He, C, N, O, Ne, Mg, Al, Si, S, Ar, Ca, Fe, Ni
-            simDataFile = aia.simulation.run(t0, t1, 10**n, num=13,
+            if (fname+'.dat') not in pastRuns and (fname+'.data') not in Runs: 
+                element_list = '2, 6, 7, 8, 10, 12, 13, 14, 16, 18, 20, 26, 28'  # He, C, N, O, Ne, Mg, Al, Si, S, Ar, Ca, Fe, Ni
+                simDataFile = aia.simulation.run(t0, t1, 10**n, num=13,
                                              indices=element_list, ntime=len(time_vals), dt= Dt, filename=fname+'.dat')
 
-            obs = aia.simulation.getSyntheticObservation_II(t0, t1, n, simDataFile, nproc) 
+                obs, simParams = aia.simulation.getSyntheticObservation_II(t0, t1, n, simDataFile, nproc) 
 
-            data = [[obs['time'][i], obs['171'][i], obs['193'][i], obs['211'][i], obs['304'][i], obs['335'][i]] for i in range(len(obs['time']))]
-            data = np.asarray(data)
-            np.savetxt('/data/khnum/REU2018/jwaczak/data/simOutput/'+fname+'.txt', data, delimiter=',') 
+                data = [[obs['time'][i], obs['171'][i], obs['193'][i], obs['211'][i], obs['304'][i], obs['335'][i]] for i in range(len(obs['time']))]
+                data = np.asarray(data)
+                np.savetxt('/data/khnum/REU2018/jwaczak/data/simOutput/'+fname+'.txt', data, delimiter=',', header='t0: {} t1: {} n: {}'.format(simParams[0], simParams[1], simParams[2])) 
 
 
 print('All done!')

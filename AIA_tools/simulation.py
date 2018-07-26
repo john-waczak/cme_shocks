@@ -54,6 +54,7 @@ def getSimulationData(dotDatFile):
 
     # get simulation parameters
     [te_sta, te_end, ne] = f.read_reals(dtype=np.float64)
+    simParams = [te_sta, te_end, ne]
 
     # get initial and final fractions for equilibrium ionization calculation 
     fraction_initial_ei  = f.read_reals(dtype=np.float64).reshape(30,30) # reshape for 30 elements by 30 ions grid
@@ -80,11 +81,11 @@ def getSimulationData(dotDatFile):
     #*** note that the NEI_fractions list now has one extra element as it isn't reasonable to attach a time to the
     #*** final equilibrium ionization fractions
 
-    simData = {'times':times, 'fractions': NEI_fractions}
+    simData = {'times':times, 'fractions': NEI_fractions, 'simParams':simParams}
     return simData
 
 
-def run(te_sta = 1e6, te_end = 2.8*1e6, n = 1e7, num = 2, indices = '2, 26', ntime = 10, dt = 0.75,
+def run(te_sta = 1.8*1e6, te_end = 2.8*1e6, n = 1e7, num = 2, indices = '2, 26', ntime = 10, dt = 0.75,
         filename = 'nei_onestep.dat',
         outputPath = '/data/khnum/REU2018/jwaczak/data/simRuns',
         pathToSimCode = '/data/khnum/REU2018/jwaczak/time_dependent_fortran/Applications/NEI_Onestep',
@@ -262,6 +263,8 @@ def getSyntheticObservation_II(te_sta, te_end, n, simDataFile, nproc):
     # get the simulation data
     simData = getSimulationData(simDataFile)
 
+    simParams = simData['simParams']
+
     # get the time values from the data
     time_vals = simData['times']
 
@@ -328,7 +331,7 @@ def getSyntheticObservation_II(te_sta, te_end, n, simDataFile, nproc):
                         em = emiss0[channel]*simData['fractions'][t][elem-1, ion]*abundances[str(elem)]
                         em_tot = np.sum(em)
                         obs[channel][t] += em_tot
-    return obs
+    return obs, simParams
 
 
 def getTempVals(pathToTemps = '/data/khnum/REU2018/jwaczak/data/tempVals.txt'):
