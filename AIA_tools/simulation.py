@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 #import sunpy.map as smap
 import os, sys
 #from astropy.coordinates import SkyCoord
@@ -144,7 +145,7 @@ def run(te_sta = 1.8*1e6, te_end = 2.8*1e6, n = 1e7, num = 2, indices = '2, 26',
     return "{}/{}".format(outputPath, filename) 
 
 
-def getCoronalAbundances(pathToAbund = '/data/khnum/REU2018/jwaczak/data/CHIANTI_8.0.7_database/abundance/sun_coronal_1992_feldman.abund'):
+def getCoronalAbundances(pathToAbund = '/data/khnum/REU2018/jwaczak/data/abundance/sun_coronal_1992_feldman.abund'):
     log10_abund = {}
     with open(pathToAbund, 'r') as f:
         for line in f:
@@ -259,9 +260,14 @@ def runParallel(simDataFile, nproc, obs_times, te_sta, te_end, n):
     return data
 
 
-def getSyntheticObservation_II(te_sta, te_end, n, simDataFile, nproc):
+def getSyntheticObservation_II(te_sta, te_end, n, simDataFile):
     # get the simulation data
     simData = getSimulationData(simDataFile)
+
+    n_s = [7, 8, 9]
+    n_i = analysis.getNearestValue(np.asarray(n_s), n)
+    N = n_s[n_i]
+
 
     simParams = simData['simParams']
 
@@ -281,19 +287,19 @@ def getSyntheticObservation_II(te_sta, te_end, n, simDataFile, nproc):
     elem_list = [2, 6, 7, 8, 10, 12, 13, 14, 16, 18, 20, 26, 28]
 
     # set up output dictionary
-    obs = {'time':simData['times'], '171':np.zeros(len(time_vals)), '193':np.zeros(len(time_vals)), '211':np.zeros(len(time_vals)), '304':np.zeros(len(time_vals)), '335':np.zeros(len(time_vals))}
+    obs = {'time':simData['times'], '171':np.zeros(len(time_vals)), '193':np.zeros(len(time_vals)),
+           '211':np.zeros(len(time_vals)), '304':np.zeros(len(time_vals)), '335':np.zeros(len(time_vals))}
 
     # loop through all of the elements
     for elem in elem_list:
-        print(elem) 
+        print(elem)
         # make sure we are actually simulating the ion
         ions = [ion for ion in range(30) if ion in emissFiles[elem].keys()]
 
         # loop through each ion
         for ion in ions:
-            print('  {}'.format(ion))
             # get emiss data
-            emissData = getEmissData(emissFiles[elem][ion][n])
+            emissData = getEmissData(emissFiles[elem][ion][N])
             emiss_wavelengths = emissData['lambda_1d']
             emiss_log_temps = emissData['logte_1d']
 
@@ -304,11 +310,20 @@ def getSyntheticObservation_II(te_sta, te_end, n, simDataFile, nproc):
             wav_indices = np.asarray(range(len(emiss_wavelengths)))
             wav_indices = wav_indices[(emiss_wavelengths[wav_indices]<=400) & (emiss_wavelengths[wav_indices]>=90)]
 
-            # get the correct emissivity data
+           # get the correct emissivity data
             emiss_wavelengths = emiss_wavelengths[wav_indices]
-            emiss = emissData['em_2d'][wav_indices, temp_index] 
-            emiss0 = {} 
+            emiss0 = emissData['em_2d'][wav_indices, temp_index]  # =A_ji*(n_j/n_ion)(1/(n_e*4*pi))  [photons s^-1 cm^3 sr^-1]
+            ea_interpolated = {}
 
+
+# --------------------------------------------------#
+
+            testDict = {26:{16:[], 8:[], 21:[], 22:[], 12:[]}, 12:{8:[]}, 8:{6:[]}} 
+
+# --------------------------------------------------#
+
+ 
+            testOut = [] 
             #create multidimensional array with emiss0*eff_area for each AIA band
             for channel in obs.keys():
                if channel is not 'time': 
@@ -318,25 +333,130 @@ def getSyntheticObservation_II(te_sta, te_end, n, simDataFile, nproc):
 
                    # interpolate to match emissivity wavelengths
                    interp_obj = interp1d(ea_wavelengths, ea_values, kind='quadratic')
-                   interp_ea = interp_obj(emiss_wavelengths)
+                   interp_ea = interp_obj(emiss_wavelengths)  # I think this has units of [cm^2]
 
                    # get real emissivity using aia response fucntion
-                   emiss0.update({channel:interp_ea * emiss})
-
-
+                   ea_interpolated.update({channel:interp_ea})
 
             for t in range(len(time_vals)):
                 for channel in obs.keys():
                     if channel is not 'time':
-                        em = emiss0[channel]*simData['fractions'][t][elem-1, ion]*abundances[str(elem)]
-                        em_tot = np.sum(em)
-                        obs[channel][t] += em_tot
+                        em0_new = emiss0*ea_interpolated[channel]  # [photons s^-1 cm^5 sr^-1]
+                        em_sum = np.sum(np.asarray(em0_new))
+                        emout = em_sum*simData['fractions'][t][elem-1, ion-1]*abundances[str(elem)]  # [photons s^-1 cm^5 sr^-1 (n_ion/n_elem)*(n_elem)]
+
+
+
+                        # if elem in testDict.keys():
+                        #     if ion in testDict[elem].keys():
+                        #         if channel is '335' and (t % 5 is 0):
+                        #             print("\t{} {} {} {}".format(elem, ion, channel, t))
+                        #             testDict[elem][ion].append('channel: {}  t: {:.2f}  em0_new max: {} [photons s^-1 cm^5 sr^-1]  em_sum: {} [photons s^-1 cm^5 sr^-1]  emout: {} [photons s^-1 cm^5 sr^-1 (n_ion/n_elem)*(n_elem)]'.format(channel, time_vals[t], np.asarray(em0_new).max(), em_sum, emout))
+
+
+                        obs[channel][t] += emout
+
+            # if elem in testDict.keys():
+            #     if ion in testDict[elem].keys():
+            #         with open ('/data/khnum/REU2018/jwaczak/data/emissivityTests/{}_{}.txt'.format(elem, ion), 'w') as f:
+            #             for line in testDict[elem][ion]:
+            #                 f.write(line+'\n')
+
     return obs, simParams
 
 
 def getTempVals(pathToTemps = '/data/khnum/REU2018/jwaczak/data/tempVals.txt'):
     temps = np.loadtxt(pathToTemps, delimiter=',')
     return temps
+
+
+def getRadiusToShock(timeIndex, dt, r0, v_shock):
+    return r0+v_shock*timeIndex*dt
+
+
+def getShockSpeed(timeIndex):
+    return 600.0 #  km/s
+
+
+def applySphericalCorrection(syntheticObservationFile, dx, t0, t1, n, limb=False, X=1.56):
+    pathToBackground = '/data/khnum/REU2018/jwaczak/data/background.txt'
+    pathToInitialRadii = '/data/khnum/REU2018/jwaczak/data/initialRadii.txt'
+    outputPath = '/data/khnum/REU2018/jwaczak/data/correctedSyntheticObservations/'
+
+    syntheticObservation_Old = np.loadtxt(syntheticObservationFile, delimiter=',')
+    background = np.loadtxt(pathToBackground, delimiter=',')
+    R0 = np.loadtxt(pathToInitialRadii, delimiter=',')
+
+    print(np.shape(syntheticObservation_Old), np.shape(background), np.shape(R0))
+
+
+    if limb is False:
+        r0 = R0[0]
+    else:
+        r0 = R0[1]
+
+    dt = 12.0  # AIA time cadence
+
+
+    #---- make a vector of shock distance at each time step -------#
+    shockDistances = [r0]
+    for i in range(1,len(syntheticObservation_Old[:,0])):
+        #r_new = shockDistances[i-1]+dt*getShockSpeed(i)/X  # divide by compression ratio -- see notes
+        shockDistances.append(getRadiusToShock(i, dt, r0, getShockSpeed(i)))
+
+    print(shockDistances[0], shockDistances[-1])
+
+    #---- loop through data and apply correction ---------#
+    outData = []
+    for i in range(len(syntheticObservation_Old[:,0])):
+        print(i) 
+
+        v_shock = getShockSpeed(i)
+        r = getRadiusToShock(i, dt, r0, v_shock) 
+        l = 2*np.sqrt(r**2-r0**2) # NOTE: x_i = r0
+
+        I_back = background*(1-(l/(2*r)))  # note the background has 5 values, 1 for each channel 
+
+        N_w = int(l/dx) # number of cells
+
+        if N_w is 0: N_w = 1  # insure we always have at least 1 box
+        if N_w > 1 and N_w % 2 ==0:  # insure we always have odd number of cells 
+            N_w = N_w -1
+
+        print('  {}'.format(N_w)) 
+
+
+        cells = [[r0, 0.0]]
+        if N_w > 1:
+            for j in range((N_w-1)/2):
+                cells.append([r0, j*dx])
+                cells.append([r0, -1*j*dx])
+
+        d_i = [(r-np.sqrt(c[0]**2+c[1]**2)) for c in cells]  # distance of each shell to the shock
+        d_i = np.asarray(d_i) 
+
+
+        # now we need to get total emissivity for all celss in each channel 
+        cell_emissivities = []
+        for j in range(1,6):
+            em = []
+            for d in d_i:
+                index = analysis.getNearestValue(shockDistances-r0, d)
+                em_adjusted = syntheticObservation_Old[index,j]*(X**2)*(n**2)*dx
+                em.append(em_adjusted)  # modulate by compression ratio, original density,
+
+            c = (1/3600)**2*(np.pi/180)**2*(1.5)  #  sr per pixel
+            em_new = np.sum(np.asarray(em))*c+I_back[j-1]
+            cell_emissivities.append(em_new)
+        # add new values to output data
+        o_dat = np.array([syntheticObservation_Old[i,0], cell_emissivities[0], cell_emissivities[1],
+                        cell_emissivities[2], cell_emissivities[3], cell_emissivities[4]])
+        outData.append(o_dat)
+
+    outData = np.asarray(outData)
+    fileName = outputPath+'t0--{:.2E}__t1--{:.2E}__n--{:.2E}__dx--{:.2E}.txt'.format(t0, t1, n, dx)
+    np.savetxt(fileName, outData, delimiter=',')
+    return outData, fileName
 
 
 if __name__ == '__main__':

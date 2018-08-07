@@ -92,13 +92,17 @@ def getRadialSlitIntensity(radialSlit, data):
     y = pixels[1, :]
     intensity_along_slit = data.data[y,x]
 
-    length_in_pixels = len(radialSlit)
-
+    #length_in_pixels = len(radialSlit)
+    lengths_in_pixels=[0.0]
+    for i in range(1,len(x)):
+        lengths_in_pixels.append(np.sqrt((x[i]-x[0])**2+(y[i]-y[0])**2))
+    lengths_in_pixels=np.asarray(lengths_in_pixels)
+    
     arcsec_per_pixel = data.meta['cdelt1']
     arcsec_per_solarRadii = data.meta['rsun_obs']
     solarRadii_per_pixel = arcsec_per_pixel / arcsec_per_solarRadii
 
-    distances = np.linspace(0, solarRadii_per_pixel*length_in_pixels, length_in_pixels)
+    distances = solarRadii_per_pixel*lengths_in_pixels
 
     return intensity_along_slit, distances
 
