@@ -3,8 +3,7 @@ import numpy as np
 from glob import glob
 
 r0 = np.loadtxt('/data/khnum/REU2018/jwaczak/data/initialRadii.txt', delimiter=',')
-dx = r0[0]/20
-
+dx = r0[0]/10.0
 
 simFiles = glob('/data/khnum/REU2018/jwaczak/data/simOutput/*.txt')
 
@@ -18,5 +17,4 @@ for sim in simFiles:
 
     print('t0: {}, t1: {}, n: {}'.format(t0, t1, n))
 
-    corrected_data, fileName = aia.simulation.applySphericalCorrection(sim, dx, float(t0), float(t1), float(n))
-    
+    corrected_data, fileName = aia.simulation.applySphericalCorrection(sim, dx, float(t0), float(t1), float(n), limb=True)

@@ -7,202 +7,177 @@ import AIA_tools as aia
 import matplotlib
 
 pathToData = '/data/khnum/REU2018/jwaczak/data/simOutput/'
-pathToFigFolder = '/data/khnum/REU2018/jwaczak/data/figs/simulation/data/'
-os.chdir(pathToData)
-dataFiles = glob('*.txt')
+pathToCorrectedData = '/data/khnum/REU2018/jwaczak/data/correctedSyntheticObservations/'
 
-print(dataFiles)
+pathToFigFolder = '/data/khnum/REU2018/jwaczak/data/figs/simulation/'
+
+dataFiles = glob(pathToData+'*.txt')
+correctedDataFiles = glob(pathToCorrectedData+'*.txt')
+
 
 obs_data = np.loadtxt('/data/khnum/REU2018/jwaczak/data/observationData/shockData.txt', delimiter=',')
 
-for file_ in dataFiles:
-    data = np.loadtxt(file_, delimiter=',')
+for dataFile in dataFiles:
+    for correctedDataFile in correctedDataFiles:
+        if dataFile[-43:] == correctedDataFile[-43:]:
+            print(dataFile)
 
-    fig, ax = plt.subplots(nrows=2, ncols=2)
+            # grab the data
 
-    data[:,0] = data[:,0]
-    d_171 = data[:,1]
-    d_193 = data[:,2]
-    d_211 = data[:,3]
-    d_304 = data[:,4]
-    d_335 = data[:,5]
-
-    r_171_193 = np.divide(d_171, d_193)
-    r_211_193 = np.divide(d_211, d_193)
-    r_304_193 = np.divide(d_304, d_193)
-    r_335_193 = np.divide(d_335, d_193) 
-
-    with matplotlib.pyplot.style.context(("dark_background")):
-        for i in range(len(d_171)):
-            print(r_171_193[i], d_171[i]/d_193[i])
-
-            ax[0,0].plot(data[:,0], r_171_193, 'b', label='simulation')
-            ax[0,0].plot(obs_data[:,0], np.divide(obs_data[:,1], obs_data[:,2]), 'r', label='observation')
-
-            ax[0,1].plot(data[:,0], r_211_193, 'b', label='simulation')
-            ax[0,1].plot(obs_data[:,0], np.divide(obs_data[:,3], obs_data[:,2]), 'r', label='observation')
-
-            ax[1,0].plot(data[:,0], r_304_193, 'b', label='simulation')
-            ax[1,0].plot(obs_data[:,0], np.divide(obs_data[:,4], obs_data[:,2]), 'r', label='observation')
-
-            ax[1,1].plot(data[:,0], r_335_193, 'b', label='simulation')
-            ax[1,1].plot(obs_data[:,0], np.divide(obs_data[:,5], obs_data[:,2]), 'r', label='observation')
-
-            ax[0,0].legend(frameon=False) 
-            ax[0,1].legend(frameon=False)
-            ax[1,0].legend(frameon=False)
-            ax[1,1].legend(frameon=False)
-
-            ax[0,0].set_ylabel("Intensity Ratio")
-            ax[0,0].set_xlabel("Time [s]")
-            ax[0,0].set_title('$171/193$')
- 
-            ax[0,1].set_ylabel("Intensity Ratio")
-            ax[0,1].set_xlabel("Time [s]")
-            ax[0,1].set_title('$211/193$')
-
-            ax[1,0].set_ylabel("Intensity Ratio")
-            ax[1,0].set_xlabel("Time [s]")
-            ax[1,0].set_title('$304/193$')
-
-        ax[1,1].set_ylabel("Intensity Ratio")
-        ax[1,1].set_xlabel("Time [s]")
-        ax[1,1].set_title('$335/193$')
-
-        fig.suptitle(file_[:-4])
-     #   plt.tight_layout()
-        plt.subplots_adjust(left=None, bottom=None, right=None, top=0.85,
-                            wspace=None, hspace=None)
-        fileName = pathToFigFolder+'/intensityRatios/'+file_[:-4]
-        plt.savefig(fileName+'.png', transparent=True)
-        plt.close()
-
-        fig_tot, ax_tot = plt.subplots()
-        ax_tot.plot(data[:,0], data[:,1]/data[:,1].max(), 'c', label='$171$ $\AA$') 
-        ax_tot.plot(obs_data[:,0], obs_data[:,1]/obs_data[:,1].max(), 'c--')
-
-        ax_tot.plot(data[:,0], data[:,2]/data[:,2].max(), 'b', label='$193$ $\AA$')
-        ax_tot.plot(obs_data[:,0], obs_data[:,2]/obs_data[:,2].max(), 'b--')
-
-        ax_tot.plot(data[:,0], data[:,3]/data[:,3].max(), 'r',label='$211$ $\AA$')
-        ax_tot.plot(obs_data[:,0], obs_data[:,3]/obs_data[:,3].max(), 'r--') 
-
-        ax_tot.plot(data[:,0], data[:,4]/data[:,4].max(), 'g', label='$304$ $\AA$')
-        ax_tot.plot(obs_data[:,0], obs_data[:,4]/obs_data[:,4].max(), 'g--')
-
-        ax_tot.plot(data[:,0], data[:,5]/data[:,5].max(), 'm', label='$335$ $\AA$')
-        ax_tot.plot(obs_data[:,0], obs_data[:,5]/obs_data[:,5].max(), 'm--')
-
-        ax_tot.set_ylabel("Tot Intensity (normalized to 1) ")
-        ax_tot.set_xlabel("Time [s]", fontsize=18)
-
-        ax_tot.legend(frameon=False)
-        ax_tot.set_title(file_[:-4])
-
-        fileName = pathToFigFolder+'/totalIntensity/'+file_[:-4]
-        plt.savefig(fileName+'.png', transparent=True)
-        plt.close()
+            data = np.loadtxt(dataFile, delimiter=',')
+            correctedData = np.loadtxt(correctedDataFile, delimiter=',')
 
 
 
+            # define the data 
+
+            o_times = obs_data[:,0]
+            o_171 = obs_data[:,1]
+            o_193 = obs_data[:,2]
+            o_211 = obs_data[:,3]
+            o_304 = obs_data[:,4]
+            o_335 = obs_data[:,5]
+
+            d_times = data[:,0]
+            d_171 = data[:,1]
+            d_193 = data[:,2]
+            d_211 = data[:,3]
+            d_304 = data[:,4]
+            d_335 = data[:,5]
+
+            c_times = correctedData[:,0]
+            c_171 = correctedData[:,1]
+            c_193 = correctedData[:,2]
+            c_211 = correctedData[:,3]
+            c_304 = correctedData[:,4]
+            c_335 = correctedData[:,5]
 
 
 
+            # calculate ratios
+            o_171_193 = np.divide(o_171, o_193)
+            o_211_193 = np.divide(o_211, o_193)
+            o_304_193 = np.divide(o_304, o_193)
+            o_335_193 = np.divide(o_335, o_193) 
+
+            d_171_193 = np.divide(d_171, d_193)
+            d_211_193 = np.divide(d_211, d_193)
+            d_304_193 = np.divide(d_304, d_193)
+            d_335_193 = np.divide(d_335, d_193) 
+
+            c_171_193 = np.divide(c_171, c_193)
+            c_211_193 = np.divide(c_211, c_193)
+            c_304_193 = np.divide(c_304, c_193)
+            c_335_193 = np.divide(c_335, c_193)
+
+            with matplotlib.pyplot.style.context(("dark_background")):
+
+                #---------INTENSITY RATIOS--------------#
+
+                fig, ax = plt.subplots(nrows=2, ncols=2)
+
+                ax[0,0].plot(o_times, o_171_193, 'b--', label='observation')
+                ax[0,0].plot(d_times, d_171_193, 'b', label='simulation')
+                ax[0,0].plot(c_times, c_171_193, 'r', label='correction')
+
+                ax[0,1].plot(o_times, o_211_193, 'b--', label='observation')
+                ax[0,1].plot(d_times, d_211_193, 'b', label='simulation')
+                ax[0,1].plot(c_times, c_211_193, 'r', label='correction')
+
+                ax[1,0].plot(o_times, o_304_193, 'b--', label='observation')
+                ax[1,0].plot(d_times, d_304_193, 'b', label='simulation')
+                ax[1,0].plot(c_times, c_304_193, 'r', label='correction')
+
+                ax[1,1].plot(o_times, o_335_193, 'b--', label='observation')
+                ax[1,1].plot(d_times, d_335_193, 'b', label='simulation')
+                ax[1,1].plot(c_times, c_335_193, 'r', label='correction')
 
 
-pathToData = '/data/khnum/REU2018/jwaczak/data/correctedSyntheticObservations'
-pathToFigFolder = '/data/khnum/REU2018/jwaczak/data/figs/simulation/correctedData/'
-os.chdir(pathToData)
-dataFiles = glob('*.txt')
+                ax[0,0].legend(frameon=False)
+                ax[0,1].legend(frameon=False)
+                ax[1,0].legend(frameon=False)
+                ax[1,1].legend(frameon=False)
 
-print(dataFiles)
+                ax[0,0].set_ylabel("Intensity Ratio")
+                ax[0,0].set_xlabel("Time [s]")
+                ax[0,0].set_title('$171/193$')
+
+                ax[0,1].set_ylabel("Intensity Ratio")
+                ax[0,1].set_xlabel("Time [s]")
+                ax[0,1].set_title('$211/193$')
+
+                ax[1,0].set_ylabel("Intensity Ratio")
+                ax[1,0].set_xlabel("Time [s]")
+                ax[1,0].set_title('$304/193$')
+
+                ax[1,1].set_ylabel("Intensity Ratio")
+                ax[1,1].set_xlabel("Time [s]")
+                ax[1,1].set_title('$335/193$')
+
+                fig.suptitle(dataFile[-43:-4])
+                plt.tight_layout()
+                plt.subplots_adjust(left=None, bottom=None, right=None, top=0.85,
+                                    wspace=None, hspace=None)
+                fileName = pathToFigFolder+'intensityRatios/'+dataFile[-43:-4]
+                plt.savefig(fileName+'.png', transparent=True)
+                plt.close()
 
 
-for file_ in dataFiles:
-    data = np.loadtxt(file_, delimiter=',')
 
-    fig, ax = plt.subplots(nrows=2, ncols=2)
+                #---------TOTAL INTENSITY-----------#
 
-    data[:,0] = data[:,0]
-    d_171 = data[:,1]
-    d_193 = data[:,2]
-    d_211 = data[:,3]
-    d_304 = data[:,4]
-    d_335 = data[:,5]
+                fig_tot, ax_tot = plt.subplots(nrows=2, ncols=3)
 
-    r_171_193 = np.divide(d_171, d_193)
-    r_211_193 = np.divide(d_211, d_193)
-    r_304_193 = np.divide(d_304, d_193)
-    r_335_193 = np.divide(d_335, d_193) 
+                # ax_tot[0,0].plot(o_times, o_171, 'r--', label='observation')
+                # ax_tot[0,0].plot(d_times, d_171, 'b', label='simulation')
+                ax_tot[0,0].plot(c_times, c_171, 'r', label='correction')
 
-    for i in range(len(d_171)):
-        print(r_171_193[i], d_171[i]/d_193[i])
+                # ax_tot[0,1].plot(o_times, o_193, 'r--', label='observation')
+                # ax_tot[0,1].plot(d_times, d_193, 'b', label='simulation')
+                ax_tot[0,1].plot(c_times, c_193, 'r', label='correction')
 
-    ax[0,0].plot(data[:,0], r_171_193, 'k', label='simulation')
-    ax[0,0].plot(obs_data[:,0], np.divide(obs_data[:,1], obs_data[:,2]), 'b', label='observation')
+                # ax_tot[0,2].plot(o_times, o_211, 'r--', label='observation')
+                # ax_tot[0,2].plot(d_times, d_211, 'b', label='simulation')
+                ax_tot[0,2].plot(c_times, c_211, 'r', label='correction')
 
-    ax[0,1].plot(data[:,0], r_211_193, 'k', label='simulation')
-    ax[0,1].plot(obs_data[:,0], np.divide(obs_data[:,3], obs_data[:,2]), 'b', label='observation')
+                # ax_tot[1,0].plot(o_times, o_304, 'r--', label='observation')
+                # ax_tot[1,0].plot(d_times, d_304, 'b', label='simulation')
+                ax_tot[1,0].plot(c_times, c_304, 'r', label='correction')
 
-    ax[1,0].plot(data[:,0], r_304_193, 'k', label='simulation')
-    ax[1,0].plot(obs_data[:,0], np.divide(obs_data[:,4], obs_data[:,2]), 'b', label='observation')
+                # ax_tot[1,1].plot(o_times, o_335, 'r--', label='observation')
+                # ax_tot[1,1].plot(d_times, d_335, 'b', label='simulation')
+                ax_tot[1,1].plot(c_times, c_335, 'r', label='correction')
 
-    ax[1,1].plot(data[:,0], r_335_193, 'k', label='simulation')
-    ax[1,1].plot(obs_data[:,0], np.divide(obs_data[:,5], obs_data[:,2]), 'b', label='observation')
 
-    ax[0,0].legend() 
-    ax[0,1].legend()
-    ax[1,0].legend()
-    ax[1,1].legend()
+                ax_tot[0,0].legend(frameon=False)
+                ax_tot[0,0].set_ylabel("Total intensity [Dn s^-1 px^-1]")
+                ax_tot[0,0].set_xlabel("Time [s]")
+                ax_tot[0,0].set_title('171 $\mathrm{\AA}$')
 
-    ax[0,0].set_ylabel("Intensity Ratio")
-    ax[0,0].set_xlabel("Time [s]")
-    ax[0,0].set_title('$171/193$')
- 
-    ax[0,1].set_ylabel("Intensity Ratio")
-    ax[0,1].set_xlabel("Time [s]")
-    ax[0,1].set_title('$211/193$')
+                ax_tot[0,1].legend(frameon=False)
+                ax_tot[0,1].set_ylabel("Total intensity [Dn s^-1 px^-1]")
+                ax_tot[0,1].set_xlabel("Time [s]")
+                ax_tot[0,1].set_title('193 $\mathrm{\AA}$')
 
-    ax[1,0].set_ylabel("Intensity Ratio")
-    ax[1,0].set_xlabel("Time [s]")
-    ax[1,0].set_title('$304/193$')
 
-    ax[1,1].set_ylabel("Intensity Ratio")
-    ax[1,1].set_xlabel("Time [s]")
-    ax[1,1].set_title('$335/193$')
+                ax_tot[0,2].legend(frameon=False)
+                ax_tot[0,2].set_ylabel("Total intensity [Dn s^-1 px^-1]")
+                ax_tot[0,2].set_xlabel("Time [s]")
+                ax_tot[0,2].set_title('211 $\mathrm{\AA}$')
 
-    fig.suptitle(file_[:-4])
-    plt.tight_layout()
-    plt.subplots_adjust(left=None, bottom=None, right=None, top=0.85,
-                wspace=None, hspace=None)
-    fileName = pathToFigFolder+'/intensityRatios/'+file_[:-4]
-    plt.savefig(fileName+'.png')
-    plt.close()
 
-    fig_tot, ax_tot = plt.subplots()
-    ax_tot.plot(data[:,0], data[:,1]/data[:,1].max(), 'k', label='$171$ $\AA$') 
-    ax_tot.plot(obs_data[:,0], obs_data[:,1]/obs_data[:,1].max(), 'k--')
+                ax_tot[1,0].legend(frameon=False)
+                ax_tot[1,0].set_ylabel("Total intensity [Dn s^-1 px^-1]")
+                ax_tot[1,0].set_xlabel("Time [s]")
+                ax_tot[1,0].set_title('304 $\mathrm{\AA}$')
 
-    ax_tot.plot(data[:,0], data[:,2]/data[:,2].max(), 'b', label='$193$ $\AA$')
-    ax_tot.plot(obs_data[:,0], obs_data[:,2]/obs_data[:,2].max(), 'b--')
+                ax_tot[1,1].legend(frameon=False)
+                ax_tot[1,1].set_ylabel("Total intensity [Dn s^-1 px^-1]")
+                ax_tot[1,1].set_xlabel("Time [s]")
+                ax_tot[1,1].set_title('335 $\mathrm{\AA}$')
 
-    ax_tot.plot(data[:,0], data[:,3]/data[:,3].max(), 'r',label='$211$ $\AA$')
-    ax_tot.plot(obs_data[:,0], obs_data[:,3]/obs_data[:,3].max(), 'r--') 
-
-    ax_tot.plot(data[:,0], data[:,4]/data[:,4].max(), 'g', label='$304$ $\AA$')
-    ax_tot.plot(obs_data[:,0], obs_data[:,4]/obs_data[:,4].max(), 'g--')
-
-    ax_tot.plot(data[:,0], data[:,5]/data[:,5].max(), 'm', label='$335$ $\AA$')
-    ax_tot.plot(obs_data[:,0], obs_data[:,5]/obs_data[:,5].max(), 'm--')
-
-    ax_tot.set_ylabel("Tot Intensity (normalized to 1) ")
-    ax_tot.set_xlabel("Time [s]", fontsize=18)
-
-    ax_tot.legend()
-    ax_tot.set_title(file_[:-4])
-
-    fileName = pathToFigFolder+'/totalIntensity/'+file_[:-4]
-    plt.savefig(fileName+'.png')
-    plt.close()
-
+                fileName = pathToFigFolder+'totalIntensity/'+dataFile[-43:-4]
+                plt.tight_layout()
+                plt.savefig(fileName+'.png', transparent=True)
+                plt.close()
 

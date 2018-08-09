@@ -31,9 +31,9 @@ Dt = np.mean(time_vals[1:]-time_vals[0:-1])
 # low_t_index = aia.analysis.getNearestValue(te_end, te_sta.max())
 # te_end = te_end[low_t_index:]
 # N = [7]
-te_sta = [1.8e6, 1.5e6, 1.3e6]
-te_end = [2.8e6]
-N = [8, 7.5, 7]
+te_sta = [1.5e6]
+te_end = [5e6]
+N = [8.3]
 
 
 pathToChiantiEmiss = '/data/khnum/REU2018/jwaczak/data/chiantiEmissData'

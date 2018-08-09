@@ -1,3 +1,4 @@
+from __future__ import division
 import numpy as np
 import matplotlib.pyplot as plt
 #import sunpy.map as smap
@@ -15,7 +16,7 @@ from scipy.io.idl import readsav
 from scipy.io import FortranFile 
 import re
 import analysis 
-import multiprocessing as mp 
+import multiprocessing as mp
 
 def getEmissList(pathToSavFiles):
     fileList = glob(pathToSavFiles+'/*.sav')
@@ -416,6 +417,9 @@ def applySphericalCorrection(syntheticObservationFile, dx, t0, t1, n, limb=False
         l = 2*np.sqrt(r**2-r0**2) # NOTE: x_i = r0
 
         I_back = background*(1-(l/(2*r)))  # note the background has 5 values, 1 for each channel 
+        for I in I_back:
+            if I < 0:
+                I = 0 
 
         N_w = int(l/dx) # number of cells
 
@@ -428,7 +432,7 @@ def applySphericalCorrection(syntheticObservationFile, dx, t0, t1, n, limb=False
 
         cells = [[r0, 0.0]]
         if N_w > 1:
-            for j in range((N_w-1)/2):
+            for j in range(int((N_w-1)/2)):
                 cells.append([r0, j*dx])
                 cells.append([r0, -1*j*dx])
 
@@ -442,19 +446,20 @@ def applySphericalCorrection(syntheticObservationFile, dx, t0, t1, n, limb=False
             em = []
             for d in d_i:
                 index = analysis.getNearestValue(shockDistances-r0, d)
-                em_adjusted = syntheticObservation_Old[index,j]*(X**2)*(n**2)*dx
+                em_adjusted = syntheticObservation_Old[index,j]
                 em.append(em_adjusted)  # modulate by compression ratio, original density,
-
-            c = (1/3600)**2*(np.pi/180)**2*(1.5)  #  sr per pixel
-            em_new = np.sum(np.asarray(em))*c+I_back[j-1]
-            cell_emissivities.append(em_new)
+            c = (1/3600)**2*(np.pi/180)**2*(1.5)
+            em_new = np.sum(np.asarray(em)*c*(X**2)*(n**2)*dx*(10**3)) #+ I_back[j-1]
+            em_w_back = em_new #+ I_back[j-1]
+            print('\t{} {}'.format(em_new, em_w_back))
+            cell_emissivities.append(em_w_back)
         # add new values to output data
         o_dat = np.array([syntheticObservation_Old[i,0], cell_emissivities[0], cell_emissivities[1],
                         cell_emissivities[2], cell_emissivities[3], cell_emissivities[4]])
         outData.append(o_dat)
 
     outData = np.asarray(outData)
-    fileName = outputPath+'t0--{:.2E}__t1--{:.2E}__n--{:.2E}__dx--{:.2E}.txt'.format(t0, t1, n, dx)
+    fileName = outputPath+'t0--{:.2E}__t1--{:.2E}__n--{:.2E}.txt'.format(t0, t1, n)
     np.savetxt(fileName, outData, delimiter=',')
     return outData, fileName
 
