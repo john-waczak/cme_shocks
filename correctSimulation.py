@@ -2,10 +2,10 @@ import AIA_tools as aia
 import numpy as np
 from glob import glob
 
-r0 = np.loadtxt('/data/khnum/REU2018/jwaczak/data/initialRadii.txt', delimiter=',')
+r0 = np.loadtxt('/home/john/gitRepos/REU/jwaczak/data/initialRadii.txt', delimiter=',')
 dx = r0[0]/10.0
 
-simFiles = glob('/data/khnum/REU2018/jwaczak/data/simOutput/*.txt')
+simFiles = glob('/home/john/gitRepos/REU/jwaczak/data/simOutput/*.txt')
 
 for sim in simFiles:
     minusExtension = sim[:-4]

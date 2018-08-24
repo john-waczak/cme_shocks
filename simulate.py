@@ -18,7 +18,7 @@ import AIA_tools as aia
 import multiprocessing as mp 
 
 
-obs_data = np.loadtxt('/data/khnum/REU2018/jwaczak/data/observationData/shockData.txt', delimiter=',')
+obs_data = np.loadtxt('home/john/gitRepos/REU/jwaczak/data/observationData/shockData.txt', delimiter=',')
 
 time_vals = obs_data[:,0]
 print(len(time_vals))
@@ -36,9 +36,9 @@ te_end = [5e6]
 N = [8.3]
 
 
-pathToChiantiEmiss = '/data/khnum/REU2018/jwaczak/data/chiantiEmissData'
+pathToChiantiEmiss = 'home/john/gitRepos/REU/jwaczak/data/chiantiEmissData'
 
-r0 = np.loadtxt('/data/khnum/REU2018/jwaczak/data/initialRadii.txt', delimiter=',')
+r0 = np.loadtxt('home/john/gitRepos/REU/jwaczak/data/initialRadii.txt', delimiter=',')
 dx = r0[0]/20
 
 for t0 in te_sta:
@@ -54,7 +54,7 @@ for t0 in te_sta:
 
             data = [[obs['time'][i], obs['171'][i], obs['193'][i], obs['211'][i], obs['304'][i], obs['335'][i]] for i in range(len(obs['time']))]
             data = np.asarray(data)
-            np.savetxt('/data/khnum/REU2018/jwaczak/data/simOutput/'+fname+'.txt', data, delimiter=',', header='t0: {} t1: {} n: {} \n times, 171, 193, 211, 304, 335'.format(simParams[0], simParams[1], simParams[2]))
+            np.savetxt('~/gitRepos/REU/jwaczak/data/simOutput/'+fname+'.txt', data, delimiter=',', header='t0: {} t1: {} n: {} \n times, 171, 193, 211, 304, 335'.format(simParams[0], simParams[1], simParams[2]))
 
 
 print('All done!')

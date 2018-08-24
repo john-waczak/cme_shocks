@@ -6,16 +6,16 @@ import os
 import AIA_tools as aia
 import matplotlib
 
-pathToData = '/data/khnum/REU2018/jwaczak/data/simOutput/'
-pathToCorrectedData = '/data/khnum/REU2018/jwaczak/data/correctedSyntheticObservations/'
+pathToData = '/home/john/gitRepos/REU/jwaczak/data/simOutput/'
+pathToCorrectedData = '/home/john/gitRepos/REU/jwaczak/data/correctedSyntheticObservations/'
 
-pathToFigFolder = '/data/khnum/REU2018/jwaczak/data/figs/simulation/'
+pathToFigFolder = '/home/john/gitRepos/REU/jwaczak/data/figs/simulation/'
 
 dataFiles = glob(pathToData+'*.txt')
 correctedDataFiles = glob(pathToCorrectedData+'*.txt')
 
 
-obs_data = np.loadtxt('/data/khnum/REU2018/jwaczak/data/observationData/shockData.txt', delimiter=',')
+obs_data = np.loadtxt('/home/john/gitRepos/REU/jwaczak/data/observationData/shockData.txt', delimiter=',')
 
 for dataFile in dataFiles:
     for correctedDataFile in correctedDataFiles:
