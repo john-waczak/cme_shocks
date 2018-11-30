@@ -233,15 +233,6 @@ def getSyntheticObservation_II(Te_sta, Te_end, n, simDataFile):
             emiss0 = emissData['em_2d'][wav_indices, temp_index]  # =A_ji*(n_j/n_ion)(1/(n_e*4*pi))  [photons s^-1 cm^3 sr^-1]
             ea_interpolated = {}
 
-
-# --------------------------------------------------#
-
-            testDict = {26:{16:[], 8:[], 21:[], 22:[], 12:[]}, 12:{8:[]}, 8:{6:[]}}
-
-# --------------------------------------------------#
-
-
-            testOut = []
             #create multidimensional array with emiss0*eff_area for each AIA band
             for channel in obs.keys():
                if channel is not 'time':
@@ -279,7 +270,7 @@ def getShockSpeed(timeIndex):
     return 600.0 #  km/s
 
 
-def getDensity(h, R_w, R_sun, k = 1.0):  # k is a fitting constant
+def getDensity(h, R_w, R_sun):  # k is a fitting constant
     """ given a height along line of sight, the distance to the observation window
     and the solar radius, return the coronal density based off of streamer data fromLimb
 
@@ -287,7 +278,7 @@ def getDensity(h, R_w, R_sun, k = 1.0):  # k is a fitting constant
     """
 
     R = np.sqrt(R_w**2+h**2)
-    r = R/R_sun
+    r = R/R_sun  # units need to be in solar radii 
     a = 77.1
     b = 31.4
     c = 0.954
@@ -295,75 +286,93 @@ def getDensity(h, R_w, R_sun, k = 1.0):  # k is a fitting constant
     e = 0.550
     f = 4.63
 
-    return k*(a*r**(-b) + c*r**(-d) + e*r**(-f))*10**8  #[cm-3]
+    return (a*r**(-b) + c*r**(-d) + e*r**(-f))*10**8  #[cm-3]
 
 
-def fitBackgroundEmissivity(pathToBackground, R_w, R_sun, N_w, k = 1, R_max = 1.5, tol=0.05): #e.g. tolerance is 5%  k is a constant for adjusting density
-    background = np.loadtxt(pathToBackground, delimiter=',')
-    print('Background: {}'.format(background))
-    background_new = []
-    for channel in background:
-        dh = (R_max*R_sun) / (N_w/2)  # cell size [km]
-        densities = []
-        for j in range(int(N_w/2)):
-            densities.append(getDensity(j*dh, R_w, R_sun, k))  # density at each cell
+# def fitBackgroundEmissivity(pathToBackground, R_w, R_sun, N_w, n_sim, R_max = 1.5, tol=0.05): #e.g. tolerance is 5%  k is a constant for adjusting density
+#     background = np.loadtxt(pathToBackground, delimiter=',')
+#     print('Background: {}'.format(background))
+#     background_new = []
+#     for channel in background:
+#         dh = (R_max*R_sun) / (N_w/2)  # cell size [km]
+#         densities = []
+#         for j in range(int(N_w/2)):
+#             densities.append(getDensity(j*dh, R_w, R_sun))  # density at each cell
 
-        def get_error(em):
-            bckgnd_tot = 0
-            for j in range(int(N_w/2)):
-                bckgnd_tot += X**2 * densities[j]**2 * dh * em * c * (10.0**5)  # include c and 10^5 to convert km to cm
-            return channel - bckgnd_tot
-
-        # establish lower and upper bound
-        em_max = 1
-        em_min = em_max
-
-        while(get_error(em_max) > 0):
-            em_max += 10*em_max
-
-        while(get_error(em_min) < 0):
-            em_min -= 10*em_min
-
-        # reduce until within tolerance
-        em = em_max
-        tolerance = tol*channel  # define the tolerance in terms of the background level
-        print(get_error(em), tolerance)
-        while(np.abs(get_error(em))>tolerance):
-            em = (em_max+em_min)/2
-            error = get_error(em)
-            if (error<0):
-                em_max = em
-            elif (error>0):
-                em_min = em
-            else:
-                print("something went wrong! em: {}  error: {}".format(em, error))
-
-        background_new.append(em)
-    return background_new
+#         # #--- adjust the density to match the simulation ---#
+#         # densities = np.asarray(densities)
+#         # adjust = (float(n_sim))/np.amax(densities)
+#         # densities = [adjust*d for d in densities]
 
 
+#         def get_error(em):
+#             bckgnd_tot = 0
+#             for j in range(int(N_w/2)):
+#                 bckgnd_tot += X**2 * densities[j]**2 * dh * em * c * (10.0**5)  # include c and 10^5 to convert km to cm
+#             return channel - bckgnd_tot
 
-def applySphericalCorrection2(syntheticObservationFile, N_w, T0, T1, n, k=1, R_max = 1.5,  X=1.56):
+#         # establish lower and upper bound
+#         em_max = 1
+#         em_min = em_max
+
+#         while(get_error(em_max) > 0):
+#             em_max += 10*em_max
+
+#         while(get_error(em_min) < 0):
+#             em_min -= 10*em_min
+
+#         # reduce until within tolerance
+#         em = em_max
+#         tolerance = tol*channel  # define the tolerance in terms of the background level
+#         print(get_error(em), tolerance)
+#         while(np.abs(get_error(em))>tolerance):
+#             em = (em_max+em_min)/2
+#             error = get_error(em)
+#             if (error<0):
+#                 em_max = em
+#             elif (error>0):
+#                 em_min = em
+#             else:
+#                 print("something went wrong! em: {}  error: {}".format(em, error))
+
+#         background_new.append(em)
+#     return background_new
+
+
+
+def applySphericalCorrection2(syntheticObservationFile, N_w, T0, T1, n, R_max = 1.5,  X=1.56):
     pathToBackground = '/home/john/gitRepos/REU/jwaczak/data/background.txt'
     outputPath = "/home/john/gitRepos/REU/jwaczak/data/correctedSyntheticObservations/"
-
+    bckgnd = np.loadtxt(pathToBackground, delimiter=',')
     syntheticObservation_Old = np.loadtxt(syntheticObservationFile, delimiter=',')
-    bckgnd = fitBackgroundEmissivity(pathToBackground, R_w, R_sun, N_w=30, k=k, R_max = R_max, tol=0.01)
-    h_max = np.sqrt((R_max*R_sun)**2-R_w**2)  # [km] maximum height of line of sight -- total is 2*h_max
+
+    h_max = np.sqrt((R_max*R_sun)**2-R_w**2)  # [km] maximum height of line of sight -- total length is 2*h_max
 
     cells = []  #  define the cells of plasma along the line of sight
     densities = []  # collect density at each cell of plasma
-    dh = h_max / (N_w/2)
+    dh = (2*h_max) / (N_w)
     for j in range(int(N_w/2)):
-        densities.append(getDensity(j*dh, R_w, R_sun, k))  # density at each cell
+        densities.append(getDensity(j*dh, R_w, R_sun))  # density at each cell
         cells.append(j*dh)
+
+
+    # #--- adjust the density to match the simulation ---#
+    # we are going to fit the streamer density to the initial values of the simulation.
+    ratio = []
+    for chan in range(1,6):
+        I_0 = np.sum([ X**2 * densities[j]**2 * dh * syntheticObservation_Old[0,chan] * c * (10.0**5) for j in range(len(cells))])
+        ratio.append(bckgnd[chan-1]/I_0)
+    ratio = np.asarray(ratio)
+    d_factor = np.mean(ratio)
+    print(ratio, d_factor)
+    densities = [d*np.sqrt(d_factor) for d in densities] # square root factor due to density squared depend.
+
     dt = 12.0  # [s]  AIA time cadence
 
     #--------------------------------------------------------------------------------------------#
     # loop through each time step
     outData = []
     for i in range(len(syntheticObservation_Old[:,0])):
-        print(i)
         v_s = getShockSpeed(i)  # [km/s] shock speed
         v_p = v_s*(1-(1/X))  # [km/s] speed of plasma behind shock
         r_s = getRadiusToShock(i, dt, r_w, getShockSpeed(i))  # distance from window to shock  [km]
@@ -383,7 +392,6 @@ def applySphericalCorrection2(syntheticObservationFile, N_w, T0, T1, n, k=1, R_m
         cell_emissivities.append(syntheticObservation_Old[i,0])  # add the time to the data
 
         for chan in range(1,6):  # time i channel j
-            print("Channel: {}".format(chan))
             em = []
             # loop through the cells and grab the  appropriate emissivity.
 
@@ -392,12 +400,10 @@ def applySphericalCorrection2(syntheticObservationFile, N_w, T0, T1, n, k=1, R_m
                 if cells[j] <= l:
                     t  = analysis.getNearestValue(syntheticObservation_Old[:,0], times_corrected[j])
                     em_new = syntheticObservation_Old[t, chan]
-                    print("\t{}  shock".format(em_new))
                     em.append(em_new)
 
                 elif cells[j] > l:
                     em_new = bckgnd[chan-1]
-                    print("\t{}  background".format(em_new))
                     em.append(bckgnd[chan-1])
 
                 else:

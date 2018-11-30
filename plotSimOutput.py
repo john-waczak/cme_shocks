@@ -5,6 +5,14 @@ from glob import glob
 import os
 import AIA_tools as aia
 import matplotlib
+import argparse
+
+# NOTE Add an argument parser for All graphs vs single graph
+# parser = argparse.ArgumentParser(description='Plot results of shock simulations.')
+# group = parser.add_mutually_exclusive_group()
+# group.add_argument('-a', '--all', action='store_true', default=False, )
+
+
 
 pathToData = '/home/john/gitRepos/REU/jwaczak/data/simOutput/'
 pathToCorrectedData = '/home/john/gitRepos/REU/jwaczak/data/correctedSyntheticObservations/'
@@ -123,33 +131,33 @@ for dataFile in dataFiles:
 
                 #---------TOTAL INTENSITY-----------#
 
-                fig_tot, ax_tot = plt.subplots(nrows=3, ncols=5, figsize=(20,20))
+                fig_tot, ax_tot = plt.subplots(nrows=2, ncols=5, figsize=(20,20))
 
                 ax_tot[0,0].plot(o_times, o_171, 'r--', label='observation')
                 ax_tot[1,0].plot(d_times, d_171, 'b', label='1D')
-                ax_tot[2,0].plot(c_times, c_171, 'r', label='3D')
+                ax_tot[0,0].plot(c_times, c_171, 'r', label='3D')
 
                 ax_tot[0,1].plot(o_times, o_193, 'r--', label='observation')
                 ax_tot[1,1].plot(d_times, d_193, 'b', label='1D')
-                ax_tot[2,1].plot(c_times, c_193, 'r', label='3D')
+                ax_tot[0,1].plot(c_times, c_193, 'r', label='3D')
 
                 ax_tot[0,2].plot(o_times, o_211, 'r--', label='observation')
                 ax_tot[1,2].plot(d_times, d_211, 'b', label='1D')
-                ax_tot[2,2].plot(c_times, c_211, 'r', label='3D')
+                ax_tot[0,2].plot(c_times, c_211, 'r', label='3D')
 
                 ax_tot[0,3].plot(o_times, o_304, 'r--', label='observation')
                 ax_tot[1,3].plot(d_times, d_304, 'b', label='1D')
-                ax_tot[2,3].plot(c_times, c_304, 'r', label='3D')
+                ax_tot[0,3].plot(c_times, c_304, 'r', label='3D')
 
                 ax_tot[0,4].plot(o_times, o_335, 'r--', label='observation')
                 ax_tot[1,4].plot(d_times, d_335, 'b', label='1D')
-                ax_tot[2,4].plot(c_times, c_335, 'r', label='3D')
+                ax_tot[0,4].plot(c_times, c_335, 'r', label='3D')
 
 
-                # ax_tot[0,0].legend(frameon=False)
+                ax_tot[0,0].legend(frameon=False)
                 ax_tot[0,0].set_ylabel("Total intensity [Dn s^-1 px^-1]")
                 ax_tot[0,0].set_xlabel("Time [s]")
-                ax_tot[0,0].set_title('171 $\mathrm{\AA}$ observation')
+                ax_tot[0,0].set_title('171 $\mathrm{\AA}$ ')
 
                 # ax_tot[0,0].legend(frameon=False)
                 ax_tot[1,0].set_ylabel("Total intensity [Dn s^-1 px^-1]")
@@ -157,14 +165,14 @@ for dataFile in dataFiles:
                 ax_tot[1,0].set_title('171 $\mathrm{\AA}$ 1D')
 
                 # ax_tot[0,0].legend(frameon=False)
-                ax_tot[2,0].set_ylabel("Total intensity [Dn s^-1 px^-1]")
-                ax_tot[2,0].set_xlabel("Time [s]")
-                ax_tot[2,0].set_title('171 $\mathrm{\AA}$ 3D')
+                # ax_tot[2,0].set_ylabel("Total intensity [Dn s^-1 px^-1]")
+                # ax_tot[2,0].set_xlabel("Time [s]")
+                # ax_tot[2,0].set_title('171 $\mathrm{\AA}$ 3D')
 
-                # ax_tot[0,0].legend(frameon=False)
+                ax_tot[0,0].legend(frameon=False)
                 ax_tot[0,1].set_ylabel("Total intensity [Dn s^-1 px^-1]")
                 ax_tot[0,1].set_xlabel("Time [s]")
-                ax_tot[0,1].set_title('193 $\mathrm{\AA}$ observation')
+                ax_tot[0,1].set_title('193 $\mathrm{\AA}$')
 
                 # ax_tot[0,0].legend(frameon=False)
                 ax_tot[1,1].set_ylabel("Total intensity [Dn s^-1 px^-1]")
@@ -172,14 +180,14 @@ for dataFile in dataFiles:
                 ax_tot[1,1].set_title('193 $\mathrm{\AA}$ 1D')
 
                 # ax_tot[0,0].legend(frameon=False)
-                ax_tot[2,1].set_ylabel("Total intensity [Dn s^-1 px^-1]")
-                ax_tot[2,1].set_xlabel("Time [s]")
-                ax_tot[2,1].set_title('193 $\mathrm{\AA}$ 3D')
+                # ax_tot[2,1].set_ylabel("Total intensity [Dn s^-1 px^-1]")
+                # ax_tot[2,1].set_xlabel("Time [s]")
+                # ax_tot[2,1].set_title('193 $\mathrm{\AA}$ 3D')
 
-                # ax_tot[0,0].legend(frameon=False)
+                ax_tot[0,0].legend(frameon=False)
                 ax_tot[0,2].set_ylabel("Total intensity [Dn s^-1 px^-1]")
                 ax_tot[0,2].set_xlabel("Time [s]")
-                ax_tot[0,2].set_title('211 $\mathrm{\AA}$ observation')
+                ax_tot[0,2].set_title('211 $\mathrm{\AA}$')
 
                 # ax_tot[0,0].legend(frameon=False)
                 ax_tot[1,2].set_ylabel("Total intensity [Dn s^-1 px^-1]")
@@ -187,14 +195,14 @@ for dataFile in dataFiles:
                 ax_tot[1,2].set_title('211 $\mathrm{\AA}$ 1D')
 
                 # ax_tot[0,0].legend(frameon=False)
-                ax_tot[2,2].set_ylabel("Total intensity [Dn s^-1 px^-1]")
-                ax_tot[2,2].set_xlabel("Time [s]")
-                ax_tot[2,2].set_title('211 $\mathrm{\AA}$ 3D')
+                # ax_tot[2,2].set_ylabel("Total intensity [Dn s^-1 px^-1]")
+                # ax_tot[2,2].set_xlabel("Time [s]")
+                # ax_tot[2,2].set_title('211 $\mathrm{\AA}$ 3D')
 
-                # ax_tot[0,0].legend(frameon=False)
+                ax_tot[0,0].legend(frameon=False)
                 ax_tot[0,3].set_ylabel("Total intensity [Dn s^-1 px^-1]")
                 ax_tot[0,3].set_xlabel("Time [s]")
-                ax_tot[0,3].set_title('304 $\mathrm{\AA}$ observation')
+                ax_tot[0,3].set_title('304 $\mathrm{\AA}$')
 
                 # ax_tot[0,0].legend(frameon=False)
                 ax_tot[1,3].set_ylabel("Total intensity [Dn s^-1 px^-1]")
@@ -202,14 +210,14 @@ for dataFile in dataFiles:
                 ax_tot[1,3].set_title('304 $\mathrm{\AA}$ 1D')
 
                 # ax_tot[0,0].legend(frameon=False)
-                ax_tot[2,3].set_ylabel("Total intensity [Dn s^-1 px^-1]")
-                ax_tot[2,3].set_xlabel("Time [s]")
-                ax_tot[2,3].set_title('304 $\mathrm{\AA}$ 3D')
+                # ax_tot[2,3].set_ylabel("Total intensity [Dn s^-1 px^-1]")
+                # ax_tot[2,3].set_xlabel("Time [s]")
+                # ax_tot[2,3].set_title('304 $\mathrm{\AA}$ 3D')
 
-                # ax_tot[0,0].legend(frameon=False)
+                ax_tot[0,0].legend(frameon=False)
                 ax_tot[0,4].set_ylabel("Total intensity [Dn s^-1 px^-1]")
                 ax_tot[0,4].set_xlabel("Time [s]")
-                ax_tot[0,4].set_title('335 $\mathrm{\AA}$ observation')
+                ax_tot[0,4].set_title('335 $\mathrm{\AA}$')
 
                 # ax_tot[0,0].legend(frameon=False)
                 ax_tot[1,4].set_ylabel("Total intensity [Dn s^-1 px^-1]")
@@ -217,9 +225,9 @@ for dataFile in dataFiles:
                 ax_tot[1,4].set_title('335 $\mathrm{\AA}$ 1D')
 
                 # ax_tot[0,0].legend(frameon=False)
-                ax_tot[2,4].set_ylabel("Total intensity [Dn s^-1 px^-1]")
-                ax_tot[2,4].set_xlabel("Time [s]")
-                ax_tot[2,4].set_title('335 $\mathrm{\AA}$ 3D')
+                # ax_tot[2,4].set_ylabel("Total intensity [Dn s^-1 px^-1]")
+                # ax_tot[2,4].set_xlabel("Time [s]")
+                # ax_tot[2,4].set_title('335 $\mathrm{\AA}$ 3D')
 
 
 
